@@ -15,3 +15,9 @@ dive into program
     - 缓存一致性协议MESI和MOESI
       - MESI
       - MOESI
+  - 缓存淘汰策略
+    - lru
+  - 缓存写入主存策略
+    - 直接写
+    - 存入写队列等待写
+    - 标记dirty等待写

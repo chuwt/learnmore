@@ -73,7 +73,69 @@ len
 - iface中结构体方法和指针方法的区别
   - 结构体方法接收的是结构体，所以传入指针报错
   - 指针方法接受的是指针，但是如果调用的是结构体，则会隐式的进行调用
+- 反射
+  - reflect.TypeOf
+  - reflect.ValueOf
+  - 可以看一下gin的bind实现
+# runtime
+## go调度
+## go gc
+## go内存
+# sdk
+## context
+- 一般用于并发控制
+- WithCancel
+- BackGroud/TODO
+- WithValue
+  - 会向父级查找
+- WithTimeout/WithDeadline
+## sync
+- mutex
+  - 互斥锁
+  - 读写锁
+- pool
+  - 对象池
+  - 用法
+    ```
+    sp := sync.Pool{
+      New: func() {
+        reutrn make([]byte, 1024)
+      }
+    }
+    sp.Get()
+    sp.Put(make([]byte, 1024))
+    ```
+  - 实现原理
+    - 1.13
+      - 每个p都会存在一个private和shared的缓存池，当前p获取时先从自己的private拿，如果没有，去shared取，如果shared没有，则去其他p的shared去取
+      - priavte不需要锁，shared需要锁
+      - 所以如果shared为空，则需要遍历所有p的shared，导致性能下降
+    - 1.14
+      - private和shared合并为local
+      - 通过双向链表的方式获取缓存对象，当前p从链表头获取，其他p从链表尾部获取
+- WaitGroup
+  - 并发控制
+## channel
+# 源码
+## net/http
 
+# 内存重排
+- 多线程时，cpu将耗时的数据进行缓存（store缓存），继续执行其他命令，其他命令进行读取的时候，发现memoy中没有，因为在store buffer中。解决方法时加入锁
+- 只会对后面没有用到的数据进行重拍，如果用到了，则不会等待数据从store buffer 传播到内存中
+- 例子
+  ```
+  var x, y int
+	go func() {
+		x = 1 // A1
+		fmt.Print("y:", y, " ") // A2
+	}()
+	go func() {
+		y = 1                   // B1
+		fmt.Print("x:", x, " ") // B2
+	}()
+  会存在
+  x:0 y:0的结果
+  ```
 # 缓存对齐，内存对齐
 - 内存对齐的原理	
   - 内存又8个chip组成，每个chip下又有8个bank，所以一次能并行读取64byte
